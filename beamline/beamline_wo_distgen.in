@@ -1,0 +1,113 @@
+### --------------------------------------------------------------------------
+# Newman B24 Big gun
+# Jai Kwan Bae (jb2483@cornell.edu)
+### --------------------------------------------------------------------------
+
+### --------------------------------------------------------------------------
+### Start initial beam ###
+### --------------------------------------------------------------------------
+distgen = 0.;
+
+if (distgen == 1) {
+    setfile("beam", "gpt.particles.gdf");
+    # for single particle, see lume-gpt repo examples
+} else {
+    radius = 0.7e-3; # 2.5e-3
+    tlen = 3e-10; # 3e-11
+    setparticles("beam",10000,me,qe,-15e-12);
+    setrxydist("beam","u",radius/2,radius);
+    setphidist("beam","u",0,2*pi);
+    #setzdist("beam", "u", 1e-6, 2e-6);
+    #setGBxdist("beam", "u", 150e-15, 300e-15);
+    setGBxdist("beam", "g", 0, 1e-6, 3, 3);
+    setGBydist("beam", "g", 0, 1e-6, 3, 3);
+    setGBxemittance("beam", 1e-7); # 100 meV MTE, r = 1.5e-3
+    setGByemittance("beam", 1e-7);
+    settdist("beam","u",0,tlen);
+}
+### --------------------------------------------------------------------------
+
+### --------------------------------------------------------------------------
+### Accuracy ###
+### --------------------------------------------------------------------------
+RadiusMax = 1.0;
+#GBacc =5.5;
+#xacc  =6.5;
+#accuracy(GBacc, xacc);
+#dtmin =1e-16;
+dtmax =1e-10; # prevent skipping elements
+### --------------------------------------------------------------------------
+
+### --------------------------------------------------------------------------
+### Pipe Boundary ###
+### --------------------------------------------------------------------------
+forwardscatter("wcs", "I", "remove", 0.0);
+scatterpipe("wcs","I", -1, 1, RadiusMax) scatter="remove";
+### --------------------------------------------------------------------------
+
+### --------------------------------------------------------------------------
+### Position the gun ###
+### --------------------------------------------------------------------------
+gun_voltage=200; # kV # 350
+Maxdcgun=500.0;
+Edcgun=gun_voltage/Maxdcgun;
+map1D_E("wcs","z",0,"fields/dcgun_GHV_1D.gdf","Z","Ez",Edcgun*100);
+### --------------------------------------------------------------------------
+
+### --------------------------------------------------------------------------
+### Position the solenoids ###
+### --------------------------------------------------------------------------
+sol01_current = 2.8; # Amps 2.8
+ZSLA01 = 0.338; # meters
+sol02_current = 3.0; # Amps 
+ZSLA02 = 2.33; # meters
+SLAPolarity = 1;
+
+BSLA01 = SLAPolarity * sol01_current;
+BSLA02 = SLAPolarity * sol02_current;
+
+map2D_B("wcs",0,0,ZSLA01,1,0,0,0,1,0,"fields/solenoid_SLA_L60.gdf","R","Z","Br","Bz", BSLA01);
+map2D_B("wcs",0,0,ZSLA02,1,0,0,0,1,0,"fields/solenoid_R128_sg.gdf","R","Z","Br","Bz", BSLA02);
+### --------------------------------------------------------------------------
+
+### --------------------------------------------------------------------------
+### Space charge ###
+### --------------------------------------------------------------------------
+space_charge = 0;
+space_charge_type = 1;
+
+Alpha  =1;# 1.0    (manual default is 1.0), (bigger is better)
+Fn     =0.5;# 0.5   (manual default is 0.5), (smaller is better)
+verror =0.005;# 0.005  (manual default is 0.01), (smaller is better)
+Nstd   =5;# 5     (manual default is 5), (bigger is better)
+
+tree_code_theta = 1.0;
+tree_code_R = 1.0e-6;
+
+if (space_charge == 1) {
+    if (space_charge_type == 1) {
+        spacecharge3Dmesh("Cathode", "MeshNfac", Alpha, "MeshAdapt", Fn, "SolverAcc", verror, "MeshBoxSize", Nstd);
+    }
+    if (space_charge_type == 2) {
+        setrmacrodist("beam","u",tree_code_R,0) ;
+        spacecharge3Dtree(tree_code_theta) ;
+    }
+}
+### --------------------------------------------------------------------------
+
+### --------------------------------------------------------------------------
+### Specify output ###
+### --------------------------------------------------------------------------
+npts = 20; #100
+tend = 1.6e-8; #1.8e-8
+zend = 2.736; # dump at 4.0
+zstart = -1e-6;
+
+#screen("wcs","I",zstart,zend,zend/npts); #1e-3,1.76,1e-2
+#tout(0, tend,tend/npts); 
+screen("wcs","I",2.736); # 2.736 3rd screen
+
+zminmax("wcs","I",zstart,zend); # Kill stationary particles
+#GBzmin("wcs", "I", 5.0e-10, 0.0); # kill particles going backwards (gamma*beta < 0.0) after t=5e-10 s
+#tmax = 20.8e-8;
+### --------------------------------------------------------------------------

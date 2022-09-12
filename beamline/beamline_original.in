@@ -1,0 +1,56 @@
+# Start initial beam
+radius = 0.25e-3; # 2.5e-3
+tlen = 3e-10; # 3e-11
+setparticles("beam",10000,me,qe,-15e-12);
+setrxydist("beam","u",radius/2,radius);
+setphidist("beam","u",0,2*pi);
+#setzdist("beam", "u", 1e-6, 2e-6);
+#setGBxdist("beam", "u", 150e-15, 300e-15);
+setGBxdist("beam", "g", 0, 1e-6, 3, 3);
+setGBydist("beam", "g", 0, 1e-6, 3, 3);
+setGBxemittance("beam", 3e-7); # 100 meV MTE, r = 1.5e-3
+setGByemittance("beam", 3e-7);
+settdist("beam","u",0,tlen);
+dtmax=1e-10; # Required to prevent skipping gpt elements
+
+# Position the gun
+gun_voltage=200; # kV # 350
+Maxdcgun=500.0;
+Edcgun=gun_voltage/Maxdcgun;
+map1D_E("wcs","z",0,"fields/dcgun_GHV_1D.gdf","Z","Ez",Edcgun*100);
+
+# Position the solenoids
+sol01_current = -2.8; #Amps 4.0
+ZSLA01 = 0.338; #meters, center .338
+sol02_current = -3.0; #Amps 5.1
+ZSLA02 = 2.33; #meters, center 1.9 (originally)
+SLAPolarity = -1;
+BSLA01 = sol01_current*SLAPolarity;
+BSLA02 = sol02_current*SLAPolarity;
+map2D_B("wcs",0,0,ZSLA01,1,0,0,0,1,0,"fields/solenoid_SLA_L60.gdf","R","Z","Br","Bz", BSLA01); # M to m
+map2D_B("wcs",0,0,ZSLA02,1,0,0,0,1,0,"fields/solenoid_R128_sg.gdf","R","Z","Br","Bz", BSLA02);
+
+# add space charge
+#spacecharge3Dmesh("Cathode");
+
+# add scattering
+forwardscatter("wcs","I","remove",0);
+scatteriris("wcs","z",0.05,0.25,0.3) scatter = "remove";
+scatterpipe("wcs","I",0.05,0.95,0.3) scatter = "remove";
+scatteriris("wcs","z",0.95,0.17,0.3) scatter = "remove";
+scatterpipe("wcs","I",0.95,1.75,0.17) scatter = "remove";
+scatterpipe("wcs","I",1.75,2.4,0.3) scatter = "remove";
+
+# Kill stationary particles when space charge is on
+#scatterplate("wcs","z",-1e-8,1,1) scatter = "remove"; # 9447/10000 survive
+#zminmax("wcs","I",-1e-7,100); # 9478/10000 survive
+#stdxyzmax(0,0,3.3); # 9333/10000 survive # this kills all particles in 2019 gpt
+
+# Specify output position
+tend = 1.6e-8; #1.8e-8
+npts = 100; #100
+pend = 4.0; # dump at 4.0
+#screen("wcs","I",1e-3,pend,pend/npts); #1e-3,1.76,1e-2
+#tout(0, tend,tend/npts); 
+screen("wcs","I",2.74); # 2.74 3rd screen
+#tmax = 20.8e-8;
