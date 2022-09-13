@@ -64,22 +64,18 @@ def main():
     ydata0 = []
 
     # set scan range
-    sol2_arr = np.linspace(0, 3.7, num=3)
-    MTE_arr = np.linspace(27, 500, num=3)
-    # spotSize_arr = np.linspace(0.3, 3, num=3)
+    sol2_arr = np.random.default_rng().uniform(0, 6.0, size=20)
+    MTE_arr = np.random.default_rng().uniform(27, 1500, size=20)
+    spotSize_arr = np.random.default_rng().uniform(0.3, 1.5, size=20)
 
-    for MTE in MTE_arr:
-        gen = sim.gen(MTE=MTE)
-        xdata_sol = []
-        ydata_sol = []
-        for sol2 in sol2_arr:
-            output = sim.gpt(gen, sol2_current=sol2)
-            xdata_entry = [MTE, sol2]
-            ydata_entry = output
-            xdata_sol.append(xdata_entry)
-            ydata_sol.append(ydata_entry)
-        xdata0.extend(xdata_sol)
-        ydata0.extend(ydata_sol)
+    for spotSize in spotSize_arr:
+        for MTE in MTE_arr:
+            gen = sim.gen(MTE=MTE,spotSize=spotSize)
+            for sol2 in sol2_arr:
+                xdata_entry = [MTE, spotSize, sol2]
+                ydata_entry = sim.gpt(gen, sol2_current=sol2)
+                xdata0.append(xdata_entry)
+                ydata0.append(ydata_entry)
         xdata_file.write(np.array(xdata0))
         ydata_file.write(np.array(ydata0))
 
