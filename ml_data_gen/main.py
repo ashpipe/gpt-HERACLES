@@ -8,9 +8,9 @@ def run_gen(MTE: float = 200.0, spotSize: float = 0.8) -> Generator:
     # generate particles
     gen = Generator("../beamline/uniform.in.yaml", verbose=0)
     gen["total_charge:value"] = 1e-3  # 3 uA
-    gen["r_dist:max_r:value"] = spotSize
+    gen["r_dist:max_r:value"] = float(spotSize)
 
-    gen["start:MTE:value"] = MTE
+    gen["start:MTE:value"] = float(MTE)
 
     gen.run()
 
