@@ -1,0 +1,13 @@
+input:
+MTE
+r_max
+//trans_x
+sol 2 //1
+
+
+
+output:
+sigma_x,//y
+r_max
+(x2 3rd screen, dump)
+
