@@ -3,6 +3,8 @@ from distgen import Generator
 import numpy as np
 import h5py
 
+repeat_count = 20000
+
 
 class data:
     def __init__(self, fn="data.h5") -> None:
@@ -63,21 +65,20 @@ def main():
     xdata0 = []
     ydata0 = []
 
-    # set scan range
-    sol2_arr = np.random.default_rng().uniform(0, 6.0, size=20)
-    MTE_arr = np.random.default_rng().uniform(27, 1500, size=20)
-    spotSize_arr = np.random.default_rng().uniform(0.3, 1.5, size=20)
+    for ii in range(repeat_count):
+        sol2 = np.random.default_rng().uniform(0, 6.0, size=1)[0]
+        MTE = np.random.default_rng().uniform(27, 1500, size=1)[0]
+        spotSize = np.random.default_rng().uniform(0.3, 1.5, size=1)[0]
 
-    for spotSize in spotSize_arr:
-        for MTE in MTE_arr:
-            gen = sim.gen(MTE=MTE,spotSize=spotSize)
-            for sol2 in sol2_arr:
-                xdata_entry = [MTE, spotSize, sol2]
-                ydata_entry = sim.gpt(gen, sol2_current=sol2)
-                xdata0.append(xdata_entry)
-                ydata0.append(ydata_entry)
-        xdata_file.write(np.array(xdata0))
-        ydata_file.write(np.array(ydata0))
+        gen = sim.gen(MTE=MTE, spotSize=spotSize)
+        xdata_entry = [MTE, spotSize, sol2]
+        ydata_entry = sim.gpt(gen, sol2_current=sol2)
+        xdata0.append(xdata_entry)
+        ydata0.append(ydata_entry)
+
+        if ii % 200 == 1:
+            xdata_file.write(np.array(xdata0))
+            ydata_file.write(np.array(ydata0))
 
 
 if __name__ == "__main__":
