@@ -3,7 +3,7 @@ from distgen import Generator
 import numpy as np
 
 
-def run(MTE=200.0, sol2_current=3.0, spotSize=0.8):
+def run_gen(MTE: float = 200.0, spotSize: float = 0.8) -> Generator:
 
     # generate particles
     gen = Generator("../beamline/uniform.in.yaml", verbose=0)
@@ -13,6 +13,11 @@ def run(MTE=200.0, sol2_current=3.0, spotSize=0.8):
     gen["start:MTE:value"] = MTE
 
     gen.run()
+
+    return gen
+
+
+def run_gpt(gen: Generator, sol2_current: float = 3.0) -> list:
 
     # run GPT
     G = GPT(
