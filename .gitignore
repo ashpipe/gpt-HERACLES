@@ -130,4 +130,4 @@ dmypy.json
 
 #
 .directoryhash
-*.h5
+.DS_Store
